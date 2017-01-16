@@ -22,6 +22,11 @@ SIZE = WIDTH, HEIGHT = 256, 192
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
+COLORS = [  (0, 0, 0), (0, 0, 207), (207, 0 ,0), (207, 0, 207),
+            (0, 207, 0), (0, 207, 207), (207, 207, 0), (207, 207, 207),
+            (0, 0, 0), (0, 0, 255), (255, 0, 0), (255, 0, 255),
+            (0, 255, 0), (0, 255, 255), (255, 255, 0), (255, 255, 255) ]
+
 def save_speccy(img, drawable, filename, raw_filename):
     print("Not implemented")
     pass
@@ -56,17 +61,22 @@ def load_bitmap(pixel_setter, data):
     """Loads a speccy image as a bitmap given a 'set_pixel' function and file data"""
     offset = 0
     block = 0
-    col = 0
     line = 0
+    col = 0
     data = bytearray(data)
+    attr_table = data[6144: 6912]
     while True:
         row_data = data[offset: offset + 32]
         tmp = (offset // 32)
         line = 8 * (tmp % 8) + (tmp // 8) % 8 + 64 * ((offset // 2048))
         if line >= 192: break
         for col, byte in enumerate(row_data):
+            attribute = attr_table[ (line // 8 )*32 + col ]
+            bright = 8 if attribute & 0x40 else 0
+            ink = attribute & 0x07
+            paper = (attribute & 0x38) // 8
             for pix in range(7, -1, -1):
-                pixel_setter((col * 8 + pix  , line), WHITE if byte & 0x01 else BLACK)
+                pixel_setter((col * 8 + pix  , line), COLORS[ ink | bright ] if byte & 0x01 else COLORS[ paper | bright ] )
                 byte >>= 1
         offset += 32
 
