@@ -12,7 +12,7 @@
 #
 # Plug-in structure based on the Open Raster plug-in by Jn Nordy, on GIMP source tree.
 from __future__ import print_function
-
+from time import time
 
 from  gimpfu import *
 import os, sys
@@ -37,7 +37,10 @@ def thumbnail_speccy(filename, thumbsize):
 
 
 def load_speccy(filename, raw_filename):
-    path = raw_filename[len('file://'):]
+    if os.name=='nt':
+        path = raw_filename[len('file:///'):]
+    else:
+        path = raw_filename[len('file://'):]
     data = open(path, "rb").read()
     if len(data) != 6912:
         print("Incorrect file size for {}: probably not a zx-spectrum scr.".format(filename),
@@ -76,7 +79,7 @@ def load_bitmap(pixel_setter, data):
             ink = attribute & 0x07
             paper = (attribute & 0x38) // 8
             for pix in range(7, -1, -1):
-                pixel_setter((col * 8 + pix  , line), COLORS[ ink | bright ] if byte & 0x01 else COLORS[ paper | bright ] )
+                pixel_setter((col * 8 + pix  , line), COLORS[ ink | bright ]  if byte & 0x01 else COLORS[ paper | bright ] )
                 byte >>= 1
         offset += 32
 
