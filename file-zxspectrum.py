@@ -12,20 +12,20 @@
 #
 # Plug-in structure based on the Open Raster plug-in by Jn Nordy, on GIMP source tree.
 from __future__ import print_function
-from time import time
 
 from  gimpfu import *
-import os, sys
+from os import name as os_name
+from sys import stderr as sys_stderr
 
 SIZE = WIDTH, HEIGHT = 256, 192
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-COLORS = [  (0, 0, 0), (0, 0, 207), (207, 0 ,0), (207, 0, 207),
+COLORS = [  BLACK, (0, 0, 207), (207, 0 ,0), (207, 0, 207),
             (0, 207, 0), (0, 207, 207), (207, 207, 0), (207, 207, 207),
             (0, 0, 0), (0, 0, 255), (255, 0, 0), (255, 0, 255),
-            (0, 255, 0), (0, 255, 255), (255, 255, 0), (255, 255, 255) ]
+            (0, 255, 0), (0, 255, 255), (255, 255, 0), WHITE ]
 
 def save_speccy(img, drawable, filename, raw_filename):
     print("Not implemented")
@@ -37,21 +37,23 @@ def thumbnail_speccy(filename, thumbsize):
 
 
 def load_speccy(filename, raw_filename):
-    if os.name=='nt':
-        path = raw_filename[len('file:///'):]
-    else:
-        path = raw_filename[len('file://'):]
+    path = raw_filename[len('file:///'):]\
+        if os_name=='nt' else raw_filename[len('file://'):]
+
     data = open(path, "rb").read()
     if len(data) != 6912:
         print("Incorrect file size for {}: probably not a zx-spectrum scr.".format(filename),
-              file=sys.stderr)
+              file=sys_stderr)
 
     img = gimp.Image(WIDTH, HEIGHT, RGB)
     layer = img.new_layer(mode=RGB)
+
     def setter(coords, color):
         v = coords + (4, color + (255,) )
         pdb.gimp_drawable_set_pixel(layer, *v)
+
     load_bitmap(setter, data)
+
     return img
 
 
